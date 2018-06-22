@@ -208,6 +208,11 @@ def get_comma_separated_args(option, opt, value, parser, fn):
     setattr(parser.values, option.dest, values)
 ##    setattr(parser.values, option.dest, map(fn, value.split(',')))
 
+def join_threads(snd, wf):
+    [r._event.set() for r in snd]
+    [r._event.set() for r in wf]
+    [t.join() for t in threading.enumerate() if t is not threading.currentThread()]
+
 def main():
 ##    sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
@@ -351,12 +356,12 @@ def main():
             time.sleep(.1)
     except KeyboardInterrupt:
         run_event.clear()
-        [t.join() for t in threading.enumerate() if t is not threading.currentThread()]
+        join_threads(snd_recorders, wf_recorders)
         print("KeyboardInterrupt: threads successfully closed")
     except Exception as e:
         traceback.print_exc()
         run_event.clear()
-        [t.join() for t in threading.enumerate() if t is not threading.currentThread()]
+        join_threads(snd_recorders, wf_recorder)
         print("Exception: threads successfully closed")
 
 if __name__ == '__main__':
